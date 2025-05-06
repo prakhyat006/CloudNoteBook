@@ -1,11 +1,4 @@
-// const mongoose=require('mongoose');
-// const mongoURI="mongodb://localhost:27017/cloudNotebook";
-// const connectToMongo =()=>{
-//     mongoose.connect(mongoURI,()=>{
-//         console.log("Connected mongo sucessfully");
-//     })
-// } 
-// module.exports=connectToMongo;
+
 const mongoose = require('mongoose');
 
 const connectToMongo = async () => {
