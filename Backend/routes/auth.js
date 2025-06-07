@@ -11,13 +11,14 @@ router.post('/createuser',[
     body('email',"Enter a  valid email").isEmail(),
     body('password',"Password must be atleast 5 character").isLength({min:5}),
 ],async(req,res)=>{
+
     //if there are error ,return Bad request and the error
 try{
     let user = await User.findOne({ email: req.body.email });
 if (user) {
   res.status(400).json({ error: "A user with this email already exists" });
 }
-
+console.log('HI')
 //checks whetherr the user with this email exist already
 var bcrypt =require('bcryptjs');
 const salt = await bcrypt.genSaltSync(10);
@@ -42,4 +43,14 @@ const secPass=await bcrypt.hash(req.body.password,salt);
   res.status(500).send("Some error occured");
 }
 })
+//autheeniticate a user using :POST "/api/auth/" . Dosent require auth .No login required 
+router.post('/creat',[
+  body('email',"Enter a  valid email").isEmail(),
+  body('Password',"Password cannot be blank").isEmail(),
+],async(req,res)=>{
+//if therer ,reutrn bad request and the error
+if(!error.isEmpty()){
+  return res.status(400).json({errors:errors.array()});
+}
+}) 
 module.exports=router
