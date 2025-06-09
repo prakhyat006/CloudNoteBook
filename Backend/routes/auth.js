@@ -2,10 +2,11 @@ const express=require('express');
 const User = require('../models/User');
 const router=express.Router();
 const { check, validationResult, body } = require('express-validator/check');
-
+const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
+var fetchuser = require('../middleware/fetchuser');
 const JWT_SCRET="prakhyatisCoder";
-//create a user using :POST "/api/auth/" . Dosent require auth .No login required 
+//Route 1: create a user using :POST "/api/auth/createuser" . Dosent require auth .No login required 
 router.post('/createuser',[
     body('name',"Enter a valid name").isLength({min:3}),
     body('email',"Enter a  valid email").isEmail(),
@@ -18,7 +19,6 @@ try{
 if (user) {
   res.status(400).json({ error: "A user with this email already exists" });
 }
-console.log('HI')
 //checks whetherr the user with this email exist already
 var bcrypt =require('bcryptjs');
 const salt = await bcrypt.genSaltSync(10);
@@ -43,14 +43,61 @@ const secPass=await bcrypt.hash(req.body.password,salt);
   res.status(500).send("Some error occured");
 }
 })
-//autheeniticate a user using :POST "/api/auth/" . Dosent require auth .No login required 
-router.post('/creat',[
-  body('email',"Enter a  valid email").isEmail(),
-  body('Password',"Password cannot be blank").isEmail(),
-],async(req,res)=>{
-//if therer ,reutrn bad request and the error
-if(!error.isEmpty()){
-  return res.status(400).json({errors:errors.array()});
-}
-}) 
+//Route 2: autheeniticate a user using :POST "/api/auth/login" . Dosent require auth .No login required 
+router.post('/login', [
+  body('email', "Enter a valid email").isEmail(),
+  body('password', "Password cannot be blank").exists(),
+], async (req, res) => {
+  console.log("Login request body:", req.body);
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log("Validation errors:", errors.array());
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { email, password } = req.body;
+
+  try {
+    console.log("Finding user by email:", email);
+    let user = await User.findOne({ email });
+    if (!user) {
+      console.log("User not found");
+      return res.status(400).json({ error: "Please try to login with correct credentials" });
+    }
+
+    console.log("Comparing passwords");
+    const passwordCompare = await bcrypt.compare(password, user.password);
+    if (!passwordCompare) {
+      console.log("Password mismatch");
+      return res.status(400).json({ error: "Please try to login with correct credentials" });
+    }
+
+    const data = {
+      user: {
+        id: user._id
+      }
+    };
+
+    const authToken = jwt.sign(data, JWT_SCRET);
+    console.log("Auth token generated");
+    res.json({ authToken });
+
+  } catch (error) {
+    console.error("Error in login route:", error);
+    res.status(500).send("Internal Server Error occurred");
+  }
+});
+//Route 3:  Get user detail using :POST "/api/auth/getuser" . Dosent require auth . login required 
+router.post('/getuser', fetchuser, async (req, res) => {
+  try {
+    const userId = req.user.id;  // Correct way to access user ID from middleware
+    const user = await User.findById(userId).select("-password");
+    res.send(user);  // Changed from `res.send` to `res.json` for consistency
+  } catch (error) {
+    console.error("Error in getuser route:", error.message);
+    res.status(500).send("Internal Server Error occurred");
+  }
+});
+
 module.exports=router
