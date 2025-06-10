@@ -19,6 +19,10 @@ try{
 if (user) {
   res.status(400).json({ error: "A user with this email already exists" });
 }
+ const errors =validationResult(req);
+    if(!errors.isEmpty()){
+        res.status(400).json({ errors:errors.array() });
+    }
 //checks whetherr the user with this email exist already
 var bcrypt =require('bcryptjs');
 const salt = await bcrypt.genSaltSync(10);
