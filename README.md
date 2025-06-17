@@ -162,9 +162,9 @@ cloudnotebook/
 ## Screenshots 📸
 
 <!-- Add screenshots of your application here -->
-![Login Page](screenshots/login.png)
-![Dashboard](screenshots/dashboard.png)
-![Note Editor](screenshots/editor.png)
+![Login Page](login.png)
+![Dashboard](dashboard.png)
+![Note Editor](editnote.png)
 
 ## License 📄
 
